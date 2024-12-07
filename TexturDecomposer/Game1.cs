@@ -69,7 +69,7 @@ namespace TexturDecomposer
             {
                 VertexColorEnabled = true,
                 World = Matrix.Identity,
-                View = Matrix.CreateLookAt(new Vector3(0, 0, 1), Vector3.Zero, Vector3.Up),
+                View = Matrix.CreateLookAt(new Vector3(0, 0, 2), Vector3.Zero, Vector3.Up),
                 Projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.PiOver4,
                 GraphicsDevice.Viewport.AspectRatio,
@@ -221,9 +221,19 @@ namespace TexturDecomposer
         private void SaveToFile(Texture2D saveTarget)
         {
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss"); // Format: YearMonthDay_HourMinuteSecond
+            string outputFolder = "output"; // Folder where the files will be saved
             string fileName = $"texture_{timestamp}.png";
 
-            using (var stream = System.IO.File.Create(fileName))
+            // Ensure the output folder exists
+            if (!System.IO.Directory.Exists(outputFolder))
+            {
+                System.IO.Directory.CreateDirectory(outputFolder);
+            }
+
+            // Combine folder and file name to get the full path
+            string filePath = System.IO.Path.Combine(outputFolder, fileName);
+
+            using (var stream = System.IO.File.Create(filePath))
             {
                 saveTarget.SaveAsPng(stream, controlPlane.TextureResolutionX, controlPlane.TextureResolutionY); // 128 - texture resolution
             }

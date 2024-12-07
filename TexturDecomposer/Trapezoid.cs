@@ -24,7 +24,7 @@ namespace TexturDecomposer
 
             basicEffect.World = Matrix.Identity;
             basicEffect.View = Matrix.CreateLookAt(
-                new Vector3(0, 0, 1),
+                new Vector3(0, 0, 2),
                 Vector3.Zero,
                 Vector3.Up
                 );
@@ -90,6 +90,26 @@ namespace TexturDecomposer
             // Convert NDC (-1 to 1 range) to screen space (pixel coordinates)
             float screenX = (transformedVertex.X + 1f) / 2f;
             float screenY = (1f - transformedVertex.Y) / 2f;  // Invert Y-axis for screen coordinates
+
+            if (screenX < 0.0f)
+            {
+                screenX = 0.0f;
+            }
+
+            if (screenY < 0.0f)
+            {
+                screenY = 0.0f;
+            }
+
+            if (screenX >= 1.0f)
+            {
+                screenX = 1.0f;
+            }
+
+            if (screenY >= 1.0f)
+            {
+                screenY = 1.0f;
+            }
 
             // Return the screen coordinates as a Vector2 (X, Y)
             return new Vector2(screenX, screenY);
