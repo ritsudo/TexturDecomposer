@@ -15,6 +15,9 @@ namespace TexturDecomposer
         private Color[] colors = {Color.Red, Color.Green, Color.Blue, Color.Yellow};
         private float PlaneSize = 1.0f;
 
+        public int TextureResolutionX = 128;
+        public int TextureResolutionY = 128;
+
         public Plane() {
             ResetPosition();
         }

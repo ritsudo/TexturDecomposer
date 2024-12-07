@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using static System.Reflection.Metadata.BlobBuilder;
 
 namespace TexturDecomposer
@@ -13,8 +14,16 @@ namespace TexturDecomposer
         private VertexPositionColor[] _vertices;
         private short[] _indices;
         private BasicEffect _effect;
+        private BasicEffect _textureEffect;
+        private KeyboardState previousKeyboardState;
 
         private Plane controlPlane;
+        private RenderTarget2D backgroundTextureTarget;
+        private Texture2D backgroundTexture;
+        private Rectangle backgroundRectangle;
+
+        private RenderTarget2D renderTarget;
+        private Texture2D spriteTexture;
 
         public Game1()
         {
@@ -30,7 +39,16 @@ namespace TexturDecomposer
             _graphics.PreferredBackBufferHeight = 720;
             _graphics.ApplyChanges();
 
+            // Enable wireframe mode
+            RasterizerState rasterizerState = new RasterizerState
+            {
+                FillMode = FillMode.WireFrame,
+                CullMode = CullMode.None
+            };
+            GraphicsDevice.RasterizerState = rasterizerState;
+
             controlPlane = new Plane();
+            renderTarget = new RenderTarget2D(GraphicsDevice, controlPlane.TextureResolutionX, controlPlane.TextureResolutionY);
 
             base.Initialize();
         }
@@ -39,11 +57,19 @@ namespace TexturDecomposer
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            backgroundTextureTarget = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            backgroundTexture = Content.Load<Texture2D>("background");
+            backgroundRectangle = new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+
+            _textureEffect = new BasicEffect(GraphicsDevice);
+            _textureEffect.TextureEnabled = true;
+            _textureEffect.Texture = backgroundTextureTarget;
+
             _effect = new BasicEffect(GraphicsDevice)
             {
                 VertexColorEnabled = true,
                 World = Matrix.Identity,
-                View = Matrix.CreateLookAt(new Vector3(0, 0, 10), Vector3.Zero, Vector3.Up),
+                View = Matrix.CreateLookAt(new Vector3(0, 0, 1), Vector3.Zero, Vector3.Up),
                 Projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.PiOver4,
                 GraphicsDevice.Viewport.AspectRatio,
@@ -67,7 +93,9 @@ namespace TexturDecomposer
                 Exit();
 
             HandleInput(currentKeyboardState);
-            // TODO: Add your update logic here
+            previousKeyboardState = currentKeyboardState;
+
+            spriteTexture = Trapezoid.DrawPrimitivesToRenderTarget(GraphicsDevice, controlPlane, renderTarget, _textureEffect, _effect);
 
             base.Update(gameTime);
         }
@@ -76,8 +104,8 @@ namespace TexturDecomposer
         {
             /* KEYBOARD:
              * WSADQE - Move, RTFGVB - rotate
-             * Z - reset position and rotation
-             * X C V - orient front, side, horizontal
+             * N - reset position and rotation
+             * Z X C - orient front, side, horizontal
              */
 
             KeyboardState keyboardState = Keyboard.GetState();
@@ -163,26 +191,41 @@ namespace TexturDecomposer
                 controlPlane.Move(direction, moveValue);
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.Z))
+            if (currentKeyboardState.IsKeyDown(Keys.N))
             {
                 controlPlane.ResetPosition();
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.X))
+            if (currentKeyboardState.IsKeyDown(Keys.Z))
             {
                 controlPlane.Orient();
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.C))
+            if (currentKeyboardState.IsKeyDown(Keys.X))
             {
                 rotationAxis = Vector3.UnitX;
                 controlPlane.OrientAndRotate(rotationAxis);
             }
 
-            if (currentKeyboardState.IsKeyDown(Keys.V))
+            if (currentKeyboardState.IsKeyDown(Keys.C))
             {
                 rotationAxis = Vector3.UnitY;
                 controlPlane.OrientAndRotate(rotationAxis);
+            }
+
+            //Save
+            if (currentKeyboardState.IsKeyDown(Keys.Enter) && previousKeyboardState.IsKeyUp(Keys.Enter))  // Move cube backward along Z-axis (away from camera)
+                SaveToFile(spriteTexture);
+        }
+
+        private void SaveToFile(Texture2D saveTarget)
+        {
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss"); // Format: YearMonthDay_HourMinuteSecond
+            string fileName = $"texture_{timestamp}.png";
+
+            using (var stream = System.IO.File.Create(fileName))
+            {
+                saveTarget.SaveAsPng(stream, controlPlane.TextureResolutionX, controlPlane.TextureResolutionY); // 128 - texture resolution
             }
         }
 
@@ -190,13 +233,16 @@ namespace TexturDecomposer
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // Enable wireframe mode
-            RasterizerState rasterizerState = new RasterizerState
-            {
-                FillMode = FillMode.WireFrame,
-                CullMode = CullMode.None
-            };
-            GraphicsDevice.RasterizerState = rasterizerState;
+            GraphicsDevice.SetRenderTarget(backgroundTextureTarget);
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(backgroundTexture, backgroundRectangle, Color.White);  // Draw the background texture
+            _spriteBatch.End();
+            GraphicsDevice.SetRenderTarget(null);
+
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(backgroundTexture, backgroundRectangle, Color.White);  // Draw the background texture
+            _spriteBatch.Draw(spriteTexture, new Vector2(10, 10), Color.White);
+            _spriteBatch.End();
 
             // Draw the plane
             foreach (var pass in _effect.CurrentTechnique.Passes)
