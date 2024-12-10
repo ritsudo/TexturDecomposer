@@ -13,12 +13,15 @@ namespace TexturDecomposer
         public Vector3 CenterPosition;
         public VertexPositionColor[] _vertices;
         private Color[] colors = {Color.Red, Color.Green, Color.Blue, Color.Yellow};
-        private float PlaneSize = 1.0f;
+        private float PlaneSizeX = 1.0f;
+        private float PlaneSizeY = 1.0f;
 
-        public int TextureResolutionX = 256;
-        public int TextureResolutionY = 256;
+        public int TextureResolutionX;
+        public int TextureResolutionY;
 
-        public Plane() {
+        public Plane(int defaultTextureResolutionX, int defaultTextureResolutionY) {
+            TextureResolutionX = defaultTextureResolutionX;
+            TextureResolutionY = defaultTextureResolutionY;
             ResetPosition();
         }
 
@@ -79,14 +82,20 @@ namespace TexturDecomposer
             
         }
 
+        public void UpdatePlaneSize(int defaultTextureResolutionX, int defaultTextureResolutionY)
+        {
+            PlaneSizeX = TextureResolutionX/defaultTextureResolutionX;
+            PlaneSizeY = TextureResolutionY/defaultTextureResolutionY;
+        }
+
         public void Orient()
         {
             _vertices = new VertexPositionColor[]
             {
-                new VertexPositionColor(new Vector3(CenterPosition.X-PlaneSize, CenterPosition.Y+PlaneSize, CenterPosition.Z), colors[0]),
-                new VertexPositionColor(new Vector3(CenterPosition.X+PlaneSize, CenterPosition.Y+PlaneSize, CenterPosition.Z), colors[1]),
-                new VertexPositionColor(new Vector3(CenterPosition.X-PlaneSize, CenterPosition.Y-PlaneSize, CenterPosition.Z), colors[2]),
-                new VertexPositionColor(new Vector3(CenterPosition.X+PlaneSize, CenterPosition.Y-PlaneSize, CenterPosition.Z), colors[3]),
+                new VertexPositionColor(new Vector3(CenterPosition.X-PlaneSizeX, CenterPosition.Y+PlaneSizeY, CenterPosition.Z), colors[0]),
+                new VertexPositionColor(new Vector3(CenterPosition.X+PlaneSizeX, CenterPosition.Y+PlaneSizeY, CenterPosition.Z), colors[1]),
+                new VertexPositionColor(new Vector3(CenterPosition.X-PlaneSizeX, CenterPosition.Y-PlaneSizeY, CenterPosition.Z), colors[2]),
+                new VertexPositionColor(new Vector3(CenterPosition.X+PlaneSizeX, CenterPosition.Y-PlaneSizeY, CenterPosition.Z), colors[3]),
             };
         }
 
@@ -102,10 +111,10 @@ namespace TexturDecomposer
 
             _vertices = new VertexPositionColor[]
             {
-                new VertexPositionColor(new Vector3(-PlaneSize, PlaneSize, 0), colors[0]),
-                new VertexPositionColor(new Vector3(PlaneSize, PlaneSize, 0), colors[1]),
-                new VertexPositionColor(new Vector3(-PlaneSize, -PlaneSize, 0), colors[2]),
-                new VertexPositionColor(new Vector3(PlaneSize, -PlaneSize, 0), colors[3]),
+                new VertexPositionColor(new Vector3(-PlaneSizeX, PlaneSizeY, 0), colors[0]),
+                new VertexPositionColor(new Vector3(PlaneSizeX, PlaneSizeY, 0), colors[1]),
+                new VertexPositionColor(new Vector3(-PlaneSizeX, -PlaneSizeY, 0), colors[2]),
+                new VertexPositionColor(new Vector3(PlaneSizeX, -PlaneSizeY, 0), colors[3]),
             };
         }
 

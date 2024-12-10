@@ -25,6 +25,9 @@ namespace TexturDecomposer
         private RenderTarget2D renderTarget;
         private Texture2D spriteTexture;
 
+        private int BasicTextureResolutionX = 256;
+        private int BasicTextureResolutionY = 256;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -47,8 +50,8 @@ namespace TexturDecomposer
             };
             GraphicsDevice.RasterizerState = rasterizerState;
 
-            controlPlane = new Plane();
-            renderTarget = new RenderTarget2D(GraphicsDevice, controlPlane.TextureResolutionX, controlPlane.TextureResolutionY);
+            controlPlane = new Plane(BasicTextureResolutionX, BasicTextureResolutionY);
+            renderTarget = new RenderTarget2D(GraphicsDevice, BasicTextureResolutionX, BasicTextureResolutionY);
 
             base.Initialize();
         }
@@ -194,6 +197,8 @@ namespace TexturDecomposer
             if (currentKeyboardState.IsKeyDown(Keys.N))
             {
                 controlPlane.ResetPosition();
+                controlPlane.TextureResolutionX = BasicTextureResolutionX;
+                controlPlane.TextureResolutionY = BasicTextureResolutionY;
             }
 
             if (currentKeyboardState.IsKeyDown(Keys.Z))
@@ -211,6 +216,32 @@ namespace TexturDecomposer
             {
                 rotationAxis = Vector3.UnitY;
                 controlPlane.OrientAndRotate(rotationAxis);
+            }
+
+            // Scale texture
+
+            if (currentKeyboardState.IsKeyDown(Keys.Y))
+            {
+                controlPlane.TextureResolutionX -= 1;
+//                controlPlane.UpdatePlaneSize(BasicTextureResolutionX, BasicTextureResolutionY);
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.U))
+            {
+                controlPlane.TextureResolutionX += 1;
+//                controlPlane.UpdatePlaneSize(BasicTextureResolutionX, BasicTextureResolutionY);
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.H))
+            {
+                controlPlane.TextureResolutionY -= 1;
+//                controlPlane.UpdatePlaneSize(BasicTextureResolutionX, BasicTextureResolutionY);
+            }
+
+            if (currentKeyboardState.IsKeyDown(Keys.J))
+            {
+                controlPlane.TextureResolutionY += 1;
+//                controlPlane.UpdatePlaneSize(BasicTextureResolutionX, BasicTextureResolutionY);
             }
 
             //Save
@@ -235,7 +266,7 @@ namespace TexturDecomposer
 
             using (var stream = System.IO.File.Create(filePath))
             {
-                saveTarget.SaveAsPng(stream, controlPlane.TextureResolutionX, controlPlane.TextureResolutionY); // 128 - texture resolution
+                saveTarget.SaveAsPng(stream, BasicTextureResolutionX, BasicTextureResolutionY);
             }
         }
 
